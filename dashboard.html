@@ -383,10 +383,20 @@ function parseSheetData(csvText){
     // R = blank (index 17)
     // S = CF Month (index 18)
     var monthDebt=String(r[18]||'').trim(); // S
-    // Nếu monthDebt là date dạng M/D/YYYY
-    if(monthDebt&&monthDebt.indexOf('/')>-1){
-      var parts=monthDebt.split('/');
-      if(parts.length>=2){var mIdx=parseInt(parts[0])-1;if(mIdx>=0&&mIdx<12) monthDebt=monthAbbr[mIdx];}
+    // Parse các dạng: M/D/YYYY, Jun-2026, Jun-26, Jun
+    if(monthDebt){
+      if(monthDebt.indexOf('/')>-1){
+        // Dạng M/D/YYYY
+        var parts=monthDebt.split('/');
+        if(parts.length>=2){var mIdx=parseInt(parts[0])-1;if(mIdx>=0&&mIdx<12) monthDebt=monthAbbr[mIdx];}
+      } else if(monthDebt.indexOf('-')>-1){
+        // Dạng Jun-2026 hoặc Jun-26
+        var mPart=monthDebt.split('-')[0];
+        // Lấy 3 ký tự đầu để match với monthAbbr
+        mPart=mPart.slice(0,3);
+        mPart=mPart.charAt(0).toUpperCase()+mPart.slice(1).toLowerCase();
+        if(monthAbbr.indexOf(mPart)>=0) monthDebt=mPart;
+      }
     }
     var pmtDate=fmtDate(r[19]);            // T
     var status=String(r[20]||'').trim();   // U
