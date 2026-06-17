@@ -328,15 +328,18 @@ function autoPriority(status){
 
 // ===== CSV PARSER =====
 function parseCSV(text){
-  var lines=text.split('\n');
   var rows=[];
+  var lines=text.split(/\r?\n/);
   for(var i=0;i<lines.length;i++){
-    var row=[];var cur='';var inQ=false;
-    for(var j=0;j<lines[i].length;j++){
-      var ch=lines[i][j];
-      if(ch==='"'){inQ=!inQ;}
-      else if(ch===','&&!inQ){row.push(cur.trim());cur='';}
-      else{cur+=ch;}
+    var row=[];var cur='';var inQ=false;var line=lines[i];
+    for(var j=0;j<line.length;j++){
+      var ch=line[j];
+      if(ch==='"'){
+        if(inQ&&line[j+1]==='"'){cur+='"';j++;}
+        else{inQ=!inQ;}
+      } else if(ch===','&&!inQ){
+        row.push(cur.trim());cur='';
+      } else{cur+=ch;}
     }
     row.push(cur.trim());
     rows.push(row);
@@ -684,7 +687,9 @@ function renderSupplierInfo(){
   var supMap={};
   allData.forEach(function(d){
     if(!supMap[d.supplier]) supMap[d.supplier]={bank:d.bank,bankAcc:d.bankAcc||'—',swift:d.swift||'—',total:0,paid:0,pending:0,statuses:[]};
-    supMap[d.supplier].total+=d.amount;supMap[d.supplier].paid+=d.paid;supMap[d.supplier].pending+=d.pending;
+    supMap[d.supplier].total+=d.amount;    // Cột N
+    supMap[d.supplier].paid+=d.paid;       // Cột O (Math.abs đã xử lý trong parse)
+    supMap[d.supplier].pending+=d.pending; // Cột P
     if(supMap[d.supplier].statuses.indexOf(d.status)<0) supMap[d.supplier].statuses.push(d.status);
   });
   var suppliers=Object.keys(supMap).sort();
