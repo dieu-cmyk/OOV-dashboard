@@ -701,8 +701,16 @@ function renderSupplierInfo(){
   var suppliers=Object.keys(supMap).sort();
   document.getElementById('supplierInfoBody').innerHTML=suppliers.map(function(sup,i){
     var s=supMap[sup];
-    var so=['Overdue','Due Soon','Pending','Blocked','Paid'],ms='Paid';
-    for(var si=0;si<so.length;si++){if(s.statuses.indexOf(so[si])>=0){ms=so[si];break;}}
+    // Status tổng hợp: dựa vào outstanding thực tế
+    var ms;
+    if(s.pending<=0){
+      ms='Paid';
+    } else {
+      // Có outstanding → lấy status nặng nhất
+      var so=['Overdue','Due Soon','Pending','Blocked'];
+      ms='Pending';
+      for(var si=0;si<so.length;si++){if(s.statuses.indexOf(so[si])>=0){ms=so[si];break;}}
+    }
     return '<tr>'+
       '<td style="color:var(--muted);font-size:11px;text-align:right">'+(i+1)+'</td>'+
       '<td class="tbl-supplier">'+sup+'</td>'+
