@@ -69,6 +69,19 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle}
 .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* Table column formatting */
+table{table-layout:auto}
+thead th{white-space:nowrap}
+tbody td{white-space:nowrap}
+tbody td.wrap{white-space:normal;min-width:160px;max-width:220px}
+tbody td.amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+tbody td.center{text-align:center}
+.tbl-supplier{min-width:160px;white-space:normal!important;font-weight:600;font-size:12px}
+.tbl-inv{font-family:monospace;font-size:12px;color:var(--muted)}
+.tbl-date{font-size:12px;color:var(--text);letter-spacing:.3px}
+.tbl-note{font-size:11px;color:var(--muted);white-space:normal;min-width:150px;max-width:200px}
+.tbl-aging{font-size:12px;font-weight:600}
+.tbl-month span{background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
 </style>
 </head>
 <body>
@@ -584,10 +597,16 @@ function renderOverview(data){
     var aging='—';
     if(dueMs){var diff=Math.round((now.getTime()-dueMs)/86400000);aging=diff>0?'<span style="color:#1a3a5c;font-weight:600">+'+diff+'d overdue</span>':'<span style="color:#4a9bb5">'+Math.abs(diff)+'d left</span>';}
     var amtC=d.status==='Overdue'?'#1a3a5c':d.status==='Due Soon'?'#2e8bc0':'var(--text)';
-    return '<tr><td style="font-weight:600;font-size:12px">'+d.supplier+'</td><td class="mono">'+d.inv+'</td><td class="mono">'+d.dueDate+'</td>'+
-      '<td class="mono" style="color:'+amtC+';font-weight:600">'+fmt(d.pending)+'</td>'+
-      '<td>'+badge(d.status)+'</td><td>'+d.priority+'</td><td class="mono">'+aging+'</td>'+
-      '<td style="font-size:11px;color:var(--muted);max-width:180px">'+(d.note||'—')+'</td></tr>';
+    return '<tr>'+
+      '<td class="tbl-supplier">'+d.supplier+'</td>'+
+      '<td class="tbl-inv">'+d.inv+'</td>'+
+      '<td class="tbl-date">'+d.dueDate+'</td>'+
+      '<td class="amt" style="color:'+amtC+'">'+fmt(d.pending)+'</td>'+
+      '<td class="center">'+badge(d.status)+'</td>'+
+      '<td style="white-space:nowrap">'+d.priority+'</td>'+
+      '<td class="tbl-aging center">'+aging+'</td>'+
+      '<td class="tbl-note">'+(d.note||'—')+'</td>'+
+      '</tr>';
   }).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No pending invoices ✅</td></tr>';
 }
 
@@ -643,11 +662,17 @@ function applyMonthlyFilter(){
     var dueMs=parseDateMs(d.dueDate);var aging='—';
     if(dueMs){var diff=Math.round((new Date().getTime()-dueMs)/86400000);aging=diff>0?'<span style="color:#1a3a5c;font-weight:600">+'+diff+'d overdue</span>':'<span style="color:#4a9bb5">'+Math.abs(diff)+'d left</span>';}
     var amtC=d.status==='Overdue'?'#1a3a5c':d.status==='Due Soon'?'#2e8bc0':'var(--text)';
-    return '<tr><td style="font-weight:600;font-size:12px">'+d.supplier+'</td><td class="mono">'+d.inv+'</td><td class="mono">'+d.dueDate+'</td>'+
-      '<td class="mono" style="color:'+amtC+';font-weight:600">'+fmt(d.pending)+'</td>'+
-      '<td>'+badge(d.status)+'</td><td>'+d.priority+'</td><td class="mono">'+aging+'</td>'+
-      '<td><span style="background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">'+(d.monthDebt||'—')+'</span></td>'+
-      '<td style="font-size:11px;color:var(--muted);max-width:180px">'+(d.note||'—')+'</td></tr>';
+    return '<tr>'+
+      '<td class="tbl-supplier">'+d.supplier+'</td>'+
+      '<td class="tbl-inv">'+d.inv+'</td>'+
+      '<td class="tbl-date">'+d.dueDate+'</td>'+
+      '<td class="amt" style="color:'+amtC+'">'+fmt(d.pending)+'</td>'+
+      '<td class="center">'+badge(d.status)+'</td>'+
+      '<td style="white-space:nowrap">'+d.priority+'</td>'+
+      '<td class="tbl-aging center">'+aging+'</td>'+
+      '<td class="tbl-month center"><span>'+(d.monthDebt||'—')+'</span></td>'+
+      '<td class="tbl-note">'+(d.note||'—')+'</td>'+
+      '</tr>';
   }).join('')||'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">No invoices found ✅</td></tr>';
 }
 
@@ -664,12 +689,17 @@ function renderSupplierInfo(){
     var s=supMap[sup];
     var so=['Overdue','Due Soon','Pending','Blocked','Paid'],ms='Paid';
     for(var si=0;si<so.length;si++){if(s.statuses.indexOf(so[si])>=0){ms=so[si];break;}}
-    return '<tr><td class="mono">'+(i+1)+'</td><td style="font-weight:600;font-size:13px">'+sup+'</td>'+
-      '<td>'+s.bank+'</td><td class="mono" style="font-size:12px">'+s.bankAcc+'</td>'+
-      '<td class="mono" style="font-size:12px;letter-spacing:.5px">'+s.swift+'</td>'+
-      '<td class="mono">'+fmt(s.total)+'</td><td class="mono" style="color:var(--paid-clr)">'+fmt(s.paid)+'</td>'+
-      '<td class="mono" style="color:'+(s.pending>0?'var(--warn)':'var(--muted)')+'">'+fmt(s.pending)+'</td>'+
-      '<td>'+badge(ms)+'</td></tr>';
+    return '<tr>'+
+      '<td style="color:var(--muted);font-size:11px;text-align:right">'+(i+1)+'</td>'+
+      '<td class="tbl-supplier">'+sup+'</td>'+
+      '<td style="font-size:12px;white-space:nowrap">'+s.bank+'</td>'+
+      '<td class="tbl-inv">'+s.bankAcc+'</td>'+
+      '<td style="font-size:12px;letter-spacing:.5px;white-space:nowrap;color:var(--muted)">'+s.swift+'</td>'+
+      '<td class="amt">'+fmt(s.total)+'</td>'+
+      '<td class="amt" style="color:var(--paid-clr)">'+fmt(s.paid)+'</td>'+
+      '<td class="amt" style="color:'+(s.pending>0?'var(--warn)':'var(--muted)')+'">'+fmt(s.pending)+'</td>'+
+      '<td class="center">'+badge(ms)+'</td>'+
+      '</tr>';
   }).join('');
 }
 function filterSupplierInfo(q){
@@ -748,7 +778,15 @@ function renderAging(){
       dH='<span style="color:'+(diff>0?'var(--danger)':'var(--paid-clr)')+'">'+( diff>0?'+':'')+diff+' days</span>';
       bB=diff>60?'<span class="badge badge-overdue">61–90 days</span>':diff>30?'<span class="badge badge-overdue">31–60 days</span>':diff>0?'<span class="badge badge-overdue">0–30 days OD</span>':diff>-7?'<span class="badge badge-duesoon">Due Soon</span>':'<span class="badge badge-pending">Not Yet Due</span>';
     }
-    return '<tr><td>'+d.supplier+'</td><td class="mono">'+d.inv+'</td><td class="mono">'+d.dueDate+'</td><td class="mono">'+dH+'</td><td class="mono">'+fmt(d.pending)+'</td><td>'+bB+'</td><td>'+d.priority+'</td></tr>';
+    return '<tr>'+
+      '<td class="tbl-supplier">'+d.supplier+'</td>'+
+      '<td class="tbl-inv">'+d.inv+'</td>'+
+      '<td class="tbl-date">'+d.dueDate+'</td>'+
+      '<td class="tbl-aging center">'+dH+'</td>'+
+      '<td class="amt">'+fmt(d.pending)+'</td>'+
+      '<td class="center">'+bB+'</td>'+
+      '<td style="white-space:nowrap">'+d.priority+'</td>'+
+      '</tr>';
   }).join('');
 }
 
@@ -757,16 +795,22 @@ var currentFilter='all';
 function renderDetailTable(data){
   document.getElementById('detail-subtitle').textContent=data.length+' invoices';
   document.getElementById('mainTableBody').innerHTML=data.map(function(d,i){
-    return '<tr><td class="mono">'+(i+1)+'</td><td style="font-size:12px;font-weight:600">'+d.supplier+'</td>'+
-      '<td class="mono">'+d.inv+'</td><td style="font-size:11px;color:var(--muted)">'+d.bank+'</td>'+
-      '<td style="font-size:11px;max-width:160px">'+d.desc+'</td>'+
-      '<td class="mono">'+d.invDate+'</td><td class="mono">'+d.dueDate+'</td>'+
-      '<td class="mono" style="font-weight:600">'+fmt(d.amount)+'</td>'+
-      '<td class="mono" style="color:var(--paid-clr)">'+(d.paid>0?fmt(d.paid):'—')+'</td>'+
-      '<td class="mono" style="color:'+(d.pending>0?'var(--warn)':'var(--muted)')+'">'+fmt(d.pending)+'</td>'+
-      '<td>'+badge(d.status)+'</td><td>'+d.priority+'</td>'+
-      '<td><span style="background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">'+(d.monthDebt||'—')+'</span></td>'+
-      '<td style="font-size:11px;color:var(--muted);max-width:140px">'+(d.note||'—')+'</td></tr>';
+    return '<tr>'+
+      '<td style="color:var(--muted);font-size:11px;text-align:right">'+(i+1)+'</td>'+
+      '<td class="tbl-supplier">'+d.supplier+'</td>'+
+      '<td class="tbl-inv">'+d.inv+'</td>'+
+      '<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+d.bank+'</td>'+
+      '<td class="tbl-note">'+d.desc+'</td>'+
+      '<td class="tbl-date">'+d.invDate+'</td>'+
+      '<td class="tbl-date">'+d.dueDate+'</td>'+
+      '<td class="amt">'+fmt(d.amount)+'</td>'+
+      '<td class="amt" style="color:var(--paid-clr)">'+(d.paid>0?fmt(d.paid):'—')+'</td>'+
+      '<td class="amt" style="color:'+(d.pending>0?'var(--warn)':'var(--muted)')+'">'+fmt(d.pending)+'</td>'+
+      '<td class="center">'+badge(d.status)+'</td>'+
+      '<td style="white-space:nowrap">'+d.priority+'</td>'+
+      '<td class="tbl-month center"><span>'+(d.monthDebt||'—')+'</span></td>'+
+      '<td class="tbl-note">'+(d.note||'—')+'</td>'+
+      '</tr>';
   }).join('');
 }
 function filterStatus(status,btn){
