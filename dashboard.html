@@ -429,6 +429,9 @@ function parseSheetData(csvText){
     var priority=String(r[22]||'').trim(); // W
     var note=String(r[23]||'').trim();     // X
 
+    // Chuẩn hóa status
+    var statusMap={'due soon':'Due Soon','overdue':'Overdue','pending':'Pending','paid':'Paid','blocked':'Blocked','partial paid':'Pending'};
+    if(status) status=statusMap[status.toLowerCase()]||status;
     if(!status||status.toLowerCase()==='auto') status=autoStatus(dueDate,pending,inv);
     if(!priority) priority=autoPriority(status);
 
@@ -706,10 +709,14 @@ function renderSupplierInfo(){
     if(s.pending<=0){
       ms='Paid';
     } else {
-      // Có outstanding → lấy status nặng nhất
+      // Có outstanding → lấy status nặng nhất từ các invoice chưa paid
+      var unpaidStatuses=[];
+      allData.filter(function(d){return d.supplier===sup&&d.pending>0;}).forEach(function(d){
+        if(unpaidStatuses.indexOf(d.status)<0) unpaidStatuses.push(d.status);
+      });
       var so=['Overdue','Due Soon','Pending','Blocked'];
       ms='Pending';
-      for(var si=0;si<so.length;si++){if(s.statuses.indexOf(so[si])>=0){ms=so[si];break;}}
+      for(var si=0;si<so.length;si++){if(unpaidStatuses.indexOf(so[si])>=0){ms=so[si];break;}}
     }
     return '<tr>'+
       '<td style="color:var(--muted);font-size:11px;text-align:right">'+(i+1)+'</td>'+
