@@ -80,6 +80,9 @@ tbody td.center{text-align:center}
 .tbl-inv{font-family:monospace;font-size:12px;color:var(--muted)}
 .tbl-date{font-size:12px;color:var(--text);letter-spacing:.3px}
 .tbl-note{font-size:11px;color:var(--muted);white-space:normal;min-width:150px;max-width:200px}
+.tbl-bank{font-size:11px;color:var(--muted);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.tbl-desc{font-size:11px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.tbl-desc:hover{white-space:normal;overflow:visible}
 .tbl-aging{font-size:12px;font-weight:600}
 .tbl-month span{background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
 </style>
@@ -799,8 +802,8 @@ function renderDetailTable(data){
       '<td style="color:var(--muted);font-size:11px;text-align:right">'+(i+1)+'</td>'+
       '<td class="tbl-supplier">'+d.supplier+'</td>'+
       '<td class="tbl-inv">'+d.inv+'</td>'+
-      '<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+d.bank+'</td>'+
-      '<td class="tbl-note">'+d.desc+'</td>'+
+      '<td class="tbl-bank" title="'+d.bank+'">'+d.bank+'</td>'+
+      '<td class="tbl-desc" title="'+d.desc+'">'+d.desc+'</td>'+
       '<td class="tbl-date">'+d.invDate+'</td>'+
       '<td class="tbl-date">'+d.dueDate+'</td>'+
       '<td class="amt">'+fmt(d.amount)+'</td>'+
