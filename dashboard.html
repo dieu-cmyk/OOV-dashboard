@@ -394,9 +394,15 @@ function parseSheetData(csvText){
     var inv=String(r[8]||'—').trim()||'—'; // I
     var invDate=fmtDate(r[9]);             // J
     var dueDate=fmtDate(r[10]);            // K
-    var amount=Math.abs(parseFloat(String(r[13]).replace(/[$,\s]/g,''))||0); // N
-    var paid=Math.abs(parseFloat(String(r[14]).replace(/[$,\s]/g,''))||0);   // O
-    var pending=Math.abs(parseFloat(String(r[15]).replace(/[$,\s]/g,''))||0);// P
+    // Hàm parse số kế toán: xử lý $(1,294.79), -$1,294.79, $1,294.79
+    function parseAcct(s){
+      s=String(s||'').replace(/[$,\s]/g,'');
+      if(s.indexOf('(')>=0) s='-'+s.replace(/[()]/g,'');
+      return Math.abs(parseFloat(s)||0);
+    }
+    var amount=parseAcct(r[13]); // N
+    var paid=parseAcct(r[14]);   // O
+    var pending=parseAcct(r[15]);// P
     if(isNaN(pending)||pending===0) pending=Math.max(0,amount-paid);
     var statusPmt=String(r[16]||'').trim(); // Q
     // R = blank (index 17)
