@@ -82,7 +82,7 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle}
   <nav>
     <div class="nav-section">Reports</div>
     <div class="nav-item active" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</div>
-    <div class="nav-item" onclick="showPage('monthly',this)"><span class="nav-icon">📆</span> Monthly Payables</div>
+    <div class="nav-item" onclick="showPage('monthly',this)"><span class="nav-icon">📆</span> Monthly Payment</div>
     <div class="nav-item" onclick="showPage('supplier-info',this)"><span class="nav-icon">🏢</span> Supplier Info</div>
     <div class="nav-section">Analysis</div>
     <div class="nav-item" onclick="showPage('aging',this)"><span class="nav-icon">⏱️</span> Aging</div>
@@ -134,10 +134,7 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle}
       <div style="position:relative;height:240px"><canvas id="trendChart"></canvas></div>
     </div>
   </div>
-  <div class="chart-card" style="margin-bottom:22px">
-    <div class="chart-title">Outstanding by Supplier per Month (Stacked)</div>
-    <div style="position:relative;height:260px"><canvas id="stackedChart"></canvas></div>
-  </div>
+
   <div id="overdueRiskBanner" style="margin-bottom:18px"></div>
   <div style="margin-bottom:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)">Priority Action List</div>
   <div class="table-card">
@@ -155,7 +152,7 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle}
   <div class="page-header">
     <div>
       <div class="page-eyebrow">Financial Data · 2026</div>
-      <div class="page-title">Monthly Payables</div>
+      <div class="page-title">Monthly Payment</div>
       <div class="page-subtitle" id="monthly-subtitle">Invoices due this month</div>
     </div>
   </div>
@@ -431,7 +428,7 @@ function renderCurrentPage(){
 }
 
 // ===== OVERVIEW =====
-var priorityDonutInst=null,trendChartInst=null,stackedChartInst=null;
+var priorityDonutInst=null,trendChartInst=null;
 
 function getFilteredOvData(){
   var status=document.getElementById('ov-status').value;
@@ -547,24 +544,7 @@ function renderOverview(data){
       scales:{x:{ticks:{font:chartFont},grid:{display:false}},y:{ticks:{font:chartFont,callback:function(v){return v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v;}},grid:{color:'rgba(0,0,0,.04)'},beginAtZero:true}}}
   });
 
-  // Stacked
-  var sM={};
-  data.forEach(function(d){if(d.monthDebt&&!sM[d.monthDebt]) sM[d.monthDebt]=monthAbbr.indexOf(d.monthDebt);});
-  var sMK=Object.keys(sM).sort(function(a,b){return sM[a]-sM[b];});
-  var sSups=[];data.filter(function(d){return d.status!=='Paid';}).forEach(function(d){if(sSups.indexOf(d.supplier)<0) sSups.push(d.supplier);});
-  var sC=['#1a3a5c','#1a5fa8','#2e8bc0','#4a9bb5','#6ab4cc','#8096ad','#b0c4d8','#4a7c6f'];
-  if(stackedChartInst) stackedChartInst.destroy();
-  stackedChartInst=new Chart(document.getElementById('stackedChart'),{
-    type:'bar',
-    data:{labels:sMK,datasets:sSups.map(function(sup,i){
-      return {label:sup.length>22?sup.slice(0,20)+'…':sup,
-        data:sMK.map(function(mk){return data.filter(function(d){return d.supplier===sup&&d.status!=='Paid'&&d.monthDebt===mk;}).reduce(function(a,d){return a+d.pending;},0);}),
-        backgroundColor:sC[i%sC.length],borderWidth:0,borderRadius:2};
-    })},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'bottom',labels:{font:{family:"'Inter',sans-serif",size:10},padding:10,usePointStyle:true,pointStyle:'circle'}}},
-      scales:{x:{stacked:true,ticks:{font:chartFont},grid:{display:false}},y:{stacked:true,ticks:{font:chartFont,callback:function(v){return v>=1000?'$'+(v/1000).toFixed(0)+'K':'$'+v;}},grid:{color:'rgba(0,0,0,.05)'}}}}
-  });
+
 
   // Overdue banner
   var odItems=data.filter(function(d){return d.status==='Overdue';});
